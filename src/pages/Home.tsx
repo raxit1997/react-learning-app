@@ -1,12 +1,41 @@
 import { IonContent, IonPage, IonButton } from '@ionic/react';
 import React from 'react';
 import ReactDom from 'react-dom';
-import ExploreContainer from '../components/ExploreContainer';
 import Employee from '../components/Employee';
 import './Home.css';
 import * as request from 'request';
+import { HomeState } from '../interfaces/Home/HomeState';
 
-class Home extends React.Component {
+class Home extends React.Component<{}, HomeState> {
+
+  timerInterval: any;
+
+  constructor(public props: any) {
+    super(props);
+    this.state = {
+      currentDate: new Date(),
+      message: 'Hello'
+    };
+  }
+
+  componentDidMount() {
+    this.timerInterval = setInterval(() => this.timer(), 1000)
+    setTimeout(() => {
+      this.setState({
+        message: 'World'
+      });
+    }, 5000);
+  }
+
+  timer() {
+    this.setState({
+      currentDate: new Date()
+    });
+  }
+
+  componentWillUnmount() {
+    clearInterval(this.timerInterval);
+  }
 
   fetchEmployeesData() {
     request.get('http://dummy.restapiexample.com/api/v1/employees', (error, response, body) => {
@@ -24,7 +53,8 @@ class Home extends React.Component {
           <IonButton onClick={() => this.fetchEmployeesData()}>
             Submit
             </IonButton>
-          <ExploreContainer />
+          <p>Current Time: { this.state.currentDate.toLocaleTimeString() }</p>
+          <p>Message: { this.state.message }</p>
           <div className="employees-data"></div>
         </IonContent>
       </IonPage>
