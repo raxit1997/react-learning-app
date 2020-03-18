@@ -5,6 +5,7 @@ import Employee from '../components/Employee';
 import './Home.css';
 import * as request from 'request';
 import { HomeState } from '../interfaces/Home/HomeState';
+import { Users } from '../components/Users/Users';
 
 class Home extends React.Component<{}, HomeState> {
 
@@ -14,7 +15,10 @@ class Home extends React.Component<{}, HomeState> {
     super(props);
     this.state = {
       currentDate: new Date(),
-      message: 'Hello'
+      message: 'Hello',
+      selectedUser: undefined,
+      userList: [],
+      renderUsersComponent: false
     };
   }
 
@@ -46,16 +50,59 @@ class Home extends React.Component<{}, HomeState> {
     })
   }
 
+  receiveUser(user: any) {
+    this.setState({
+      selectedUser: user
+    });
+  }
+
+  fetchUserDataFirstPage() {
+    this.setState({ renderUsersComponent: false });
+    request.get('https://reqres.in/api/users', (error, response, body) => {
+      const responseData = JSON.parse(body);
+      const userList = responseData.data;
+      this.setState({
+        userList: userList,
+        renderUsersComponent: true
+      })
+    });
+  }
+
+  fetchUserDataSecondPage() {
+    this.setState({ renderUsersComponent: false });
+    request.get('https://reqres.in/api/users?page=2', (error, response, body) => {
+      const responseData = JSON.parse(body);
+      const userList = responseData.data;
+      this.setState({
+        userList: userList,
+        renderUsersComponent: true
+      })
+    });
+  }
+
   render() {
     return (
       <IonPage>
         <IonContent>
-          <IonButton onClick={() => this.fetchEmployeesData()}>
-            Submit
-            </IonButton>
+          <IonButton onClick={() => this.fetchUserDataFirstPage()}>
+            First Page
+          </IonButton>
+          <IonButton onClick={() => this.fetchUserDataSecondPage()}>
+            Second Page
+          </IonButton>
           <p>Current Time: { this.state.currentDate.toLocaleTimeString() }</p>
           <p>Message: { this.state.message }</p>
+          <div>
+            {
+              this.state.selectedUser ? <p>Selected User Email ID: {this.state.selectedUser.email}</p> : null
+            }
+          </div>
           <div className="employees-data"></div>
+          <div className="user-data">
+            {
+              this.state.userList && this.state.userList.length > 0 && this.state.renderUsersComponent ? <Users sendUser={this.receiveUser.bind(this)} userList={this.state.userList} /> : null
+            }
+          </div>
         </IonContent>
       </IonPage>
     );
